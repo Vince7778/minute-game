@@ -1,24 +1,39 @@
-import "./style.css";
-import typescriptLogo from "./typescript.svg";
-import viteLogo from "/vite.svg";
-import { setupCounter } from "./counter.ts";
+import { CButton } from "./button";
+import { Component } from "./component";
+import { FrameUpdater } from "./frameupdater";
+import { State } from "./state";
+import { CText } from "./text";
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`;
+let e = document.getElementById("app")!;
 
-setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
+let state = new State();
+
+let testButton = new CButton("test", 2000, (s, c) => {
+    s.testResource += c;
+});
+e.appendChild(testButton.init(state));
+
+let testText = new CText((s) => `${s.testResource} test resources`);
+e.appendChild(testText.init(state));
+
+let components: Component[] = [testButton, testText];
+let frameUpdaters: FrameUpdater[] = [testButton];
+
+let startTime = Date.now();
+
+function draw() {
+    let endFrame = Date.now() - startTime;
+    while (state.frame != endFrame) {
+        state.frame++;
+        for (let f of frameUpdaters) {
+            f.frame(state);
+        }
+    }
+    for (let c of components) {
+        c.update(state);
+    }
+    testButton.update(state);
+    requestAnimationFrame(draw);
+}
+
+requestAnimationFrame(draw);

@@ -1,7 +1,7 @@
 import { State } from "./state";
 
 export interface Component {
-    elem: HTMLElement | null;
-    init(state: State): HTMLElement;
+    id: string;
+    init(state: State): void;
     update(state: State): void;
 }

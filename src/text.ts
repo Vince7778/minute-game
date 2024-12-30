@@ -3,22 +3,30 @@ import { State } from "./state";
 
 type TextFn = (state: State) => string;
 export class CText implements Component {
-    elem: HTMLElement | null = null;
+    id: string;
     fn: TextFn;
 
-    constructor(fn: TextFn) {
+    constructor(id: string, fn: TextFn) {
+        this.id = id;
         this.fn = fn;
     }
 
-    init(state: State): HTMLElement {
-        let e = document.createElement("div");
-        e.innerText = this.fn(state);
-        this.elem = e;
+    getElem(): HTMLElement {
+        let e = document.getElementById(this.id);
+        if (!e) {
+            throw new Error(`No element with id ${this.id} exists`);
+        }
         return e;
     }
 
+    init(state: State): void {
+        let e = this.getElem();
+        e.innerText = this.fn(state);
+        e.classList.add("ctext");
+    }
+
     update(state: State): void {
-        if (!this.elem) return;
-        this.elem.innerText = this.fn(state);
+        let e = this.getElem();
+        e.innerText = this.fn(state);
     }
 }

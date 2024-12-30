@@ -2,43 +2,101 @@ import { Component } from "./component";
 import { FrameUpdater } from "./frameupdater";
 import { Interaction } from "./interaction";
 import { State } from "./state";
+import { formatTime } from "./utils";
 
-type CompleteFn = (state: State, completions: number) => void;
+export enum CompleteResult {
+    NORMAL,
+    DISABLE,
+}
+
+type CompleteFn = (state: State, completions: number) => CompleteResult | void;
+export interface CButtonSettings {
+    id: string;
+    maxProgress: number;
+    text?: string;
+    belowText?: string;
+    getBelowText?: (state: State) => string;
+    onComplete?: CompleteFn;
+    shouldEnable?: (state: State) => boolean;
+}
+
 export class CButton implements Component, FrameUpdater {
     id: string;
-    elem: HTMLElement | null = null;
+    text: string;
+    belowText?: string;
     maxProgress: number;
     progress: number = 0;
     clickers: number = 0;
     realMousePressed: boolean = false;
-    onComplete: CompleteFn;
+    enabled: boolean = true;
+    onComplete?: CompleteFn;
+    shouldEnable?: (state: State) => boolean;
+    getBelowText?: (state: State) => string;
 
-    constructor(id: string, maxProgress: number, onComplete: CompleteFn) {
-        this.id = id;
-        this.maxProgress = maxProgress;
-        this.onComplete = onComplete;
+    constructor(settings: CButtonSettings) {
+        this.id = settings.id;
+        this.text = settings.text ?? "";
+        this.maxProgress = settings.maxProgress;
+        this.onComplete = settings.onComplete;
+        this.shouldEnable = settings.shouldEnable;
+        this.belowText = settings.belowText;
+        this.getBelowText = settings.getBelowText;
     }
 
     frame(state: State) {
+        this.setEnabled(this.shouldEnable?.(state) ?? true);
+        if (!this.enabled) return;
         this.progress += this.clickers;
         if (this.progress >= this.maxProgress) {
             let completions = Math.floor(this.progress / this.maxProgress);
-            this.onComplete(state, completions);
-            this.progress -= this.maxProgress * completions;
+            let res =
+                this.onComplete?.(state, completions) ?? CompleteResult.NORMAL;
+            switch (res) {
+                case CompleteResult.NORMAL:
+                    this.progress -= this.maxProgress * completions;
+                    break;
+                case CompleteResult.DISABLE:
+                    this.disable();
+                    this.progress = this.maxProgress;
+                    break;
+            }
         }
     }
 
-    init(_: State): HTMLElement {
-        let e = document.createElement("div");
+    private getElem(): HTMLElement {
+        const e = document.getElementById(this.id);
+        if (!e) {
+            throw new Error(`No element with id ${this.id} exists`);
+        }
+        return e;
+    }
+
+    private getProgressText(): string {
+        return `${formatTime(this.progress)} / ${formatTime(this.maxProgress)}`;
+    }
+
+    init(_: State): void {
+        let e = this.getElem();
+        e.classList.add("cbutton");
+
+        let topText = document.createElement("div");
+        topText.innerText = this.text;
+        e.appendChild(topText);
 
         let p = document.createElement("progress");
         p.max = this.maxProgress;
         p.value = this.progress;
         e.appendChild(p);
 
-        let t = document.createElement("div");
-        t.innerText = `Clickers: ${this.clickers}`;
-        e.appendChild(t);
+        let bottomText = document.createElement("div");
+        bottomText.innerText = this.getProgressText();
+        e.appendChild(bottomText);
+
+        let belowText = document.createElement("div");
+        if (this.belowText) {
+            belowText.innerText = this.belowText;
+        }
+        e.appendChild(belowText);
 
         e.addEventListener("mousedown", (e) =>
             this.onmousedown(Interaction.fromMouseEvent(e)),
@@ -49,19 +107,22 @@ export class CButton implements Component, FrameUpdater {
         e.addEventListener("mouseleave", (e) =>
             this.onmouseleave(Interaction.fromMouseEvent(e)),
         );
-
-        this.elem = e;
-        return e;
     }
 
-    update(_: State): void {
-        if (!this.elem) return;
+    update(state: State): void {
+        let e = this.getElem();
+        e.classList.toggle("cbutton-disabled", !this.enabled);
+        e.classList.toggle("cbutton-pressed", this.realMousePressed);
 
-        let p = this.elem.children[0] as HTMLProgressElement;
+        let p = e.children[1] as HTMLProgressElement;
         p.value = this.progress;
 
-        let t = this.elem.children[1] as HTMLDivElement;
-        t.innerText = `Clickers: ${this.clickers}`;
+        let bottomText = e.children[2] as HTMLDivElement;
+        bottomText.innerText = this.getProgressText();
+
+        let belowText = e.children[3] as HTMLDivElement;
+        belowText.innerText =
+            this.getBelowText?.(state) ?? this.belowText ?? "";
     }
 
     onmousedown(inter: Interaction) {
@@ -83,6 +144,23 @@ export class CButton implements Component, FrameUpdater {
         if (inter.real && this.realMousePressed) {
             this.clickers--;
             this.realMousePressed = false;
+        }
+    }
+
+    disable() {
+        this.enabled = false;
+        this.progress = 0;
+    }
+
+    enable() {
+        this.enabled = true;
+    }
+
+    setEnabled(e: boolean) {
+        if (this.enabled && !e) {
+            this.disable();
+        } else if (!this.enabled && e) {
+            this.enable();
         }
     }
 }

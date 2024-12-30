@@ -4,6 +4,8 @@ export class State {
     isStandSetUp = false;
     moneyPerLemonade = 5;
 
+    showComputerButton = false;
+
     resources = {
         money: 0,
         lemons: 0,

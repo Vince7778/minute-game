@@ -16,6 +16,10 @@ body {
     cursor: pointer;
 }
 
+.cbutton-hidden {
+    display: none;
+}
+
 .cbutton-disabled {
     color: #555;
     cursor: not-allowed;

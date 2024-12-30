@@ -7,6 +7,12 @@ import { formatTime, pluralify } from "./utils";
 
 let state = new State();
 
+let timerText = new CText(
+    "timerText",
+    (s) => `Time elapsed: ${formatTime(s.frame)}`,
+);
+timerText.init(state);
+
 let lemonText = new CText("lemonText", (s) =>
     pluralify(s.resources.lemons, "lemon"),
 );
@@ -82,11 +88,27 @@ let sellButton = new CButton({
 });
 sellButton.init(state);
 
-let timerText = new CText(
-    "timerText",
-    (s) => `Time elapsed: ${formatTime(s.frame)}`,
-);
-timerText.init(state);
+const COMPUTER_COST = 500;
+let computerButton = new CButton({
+    id: "computerButton",
+    text: "Buy a computer",
+    belowText: `Costs $${COMPUTER_COST}`,
+    maxProgress: 5000,
+    shouldEnable(state) {
+        return state.resources.money >= COMPUTER_COST;
+    },
+    shouldShow(state) {
+        if (!state.showComputerButton && state.resources.money >= 15) {
+            state.showComputerButton = true;
+        }
+        return state.showComputerButton;
+    },
+    onComplete(state) {
+        state.resources.money -= COMPUTER_COST;
+        return CompleteResult.DISABLE;
+    },
+});
+computerButton.init(state);
 
 let components: Component[] = [
     lemonButton,
@@ -97,12 +119,14 @@ let components: Component[] = [
     squeezeButton,
     sellButton,
     moneyText,
+    computerButton,
 ];
 let frameUpdaters: FrameUpdater[] = [
     lemonButton,
     standButton,
     squeezeButton,
     sellButton,
+    computerButton,
 ];
 
 let startTime = Date.now();

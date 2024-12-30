@@ -18,6 +18,7 @@ export interface CButtonSettings {
     getBelowText?: (state: State) => string;
     onComplete?: CompleteFn;
     shouldEnable?: (state: State) => boolean;
+    shouldShow?: (state: State) => boolean;
 }
 
 export class CButton implements Component, FrameUpdater {
@@ -29,8 +30,10 @@ export class CButton implements Component, FrameUpdater {
     clickers: number = 0;
     realMousePressed: boolean = false;
     enabled: boolean = true;
+    shown: boolean = true;
     onComplete?: CompleteFn;
     shouldEnable?: (state: State) => boolean;
+    shouldShow: (state: State) => boolean;
     getBelowText?: (state: State) => string;
 
     constructor(settings: CButtonSettings) {
@@ -41,6 +44,7 @@ export class CButton implements Component, FrameUpdater {
         this.shouldEnable = settings.shouldEnable;
         this.belowText = settings.belowText;
         this.getBelowText = settings.getBelowText;
+        this.shouldShow = settings.shouldShow ?? (() => true);
     }
 
     frame(state: State) {
@@ -75,9 +79,10 @@ export class CButton implements Component, FrameUpdater {
         return `${formatTime(this.progress)} / ${formatTime(this.maxProgress)}`;
     }
 
-    init(_: State): void {
+    init(state: State): void {
         let e = this.getElem();
         e.classList.add("cbutton");
+        e.classList.toggle("cbutton-hidden", !this.shouldShow(state));
 
         let topText = document.createElement("div");
         topText.innerText = this.text;
@@ -113,6 +118,7 @@ export class CButton implements Component, FrameUpdater {
         let e = this.getElem();
         e.classList.toggle("cbutton-disabled", !this.enabled);
         e.classList.toggle("cbutton-pressed", this.realMousePressed);
+        e.classList.toggle("cbutton-hidden", !this.shouldShow(state));
 
         let p = e.children[1] as HTMLProgressElement;
         p.value = this.progress;

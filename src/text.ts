@@ -1,4 +1,5 @@
 import { Component } from "./component";
+import { GameRunner } from "./runner";
 import { State } from "./state";
 
 type TextFn = (state: State) => string;
@@ -23,6 +24,11 @@ export class CText implements Component {
         let e = this.getElem();
         e.innerText = this.fn(state);
         e.classList.add("ctext");
+    }
+
+    addTo(runner: GameRunner) {
+        runner.components.push(this);
+        this.init(runner.state);
     }
 
     update(state: State): void {

@@ -1,6 +1,8 @@
 import { Component } from "./component";
 import { FrameUpdater } from "./frameupdater";
 import { Interaction } from "./interaction";
+import { ReplayRecorder } from "./replay";
+import { GameRunner } from "./runner";
 import { State } from "./state";
 import { formatTime } from "./utils";
 
@@ -21,7 +23,7 @@ export interface CButtonSettings {
     shouldShow?: (state: State) => boolean;
 }
 
-export class CButton implements Component, FrameUpdater {
+export class CButton extends ReplayRecorder implements Component, FrameUpdater {
     id: string;
     text: string;
     belowText?: string;
@@ -37,6 +39,7 @@ export class CButton implements Component, FrameUpdater {
     getBelowText?: (state: State) => string;
 
     constructor(settings: CButtonSettings) {
+        super(settings.id);
         this.id = settings.id;
         this.text = settings.text ?? "";
         this.maxProgress = settings.maxProgress;
@@ -48,6 +51,7 @@ export class CButton implements Component, FrameUpdater {
     }
 
     frame(state: State) {
+        super.frame(state);
         this.setEnabled(this.shouldEnable?.(state) ?? true);
         if (!this.enabled) return;
         this.progress += this.clickers;
@@ -103,15 +107,16 @@ export class CButton implements Component, FrameUpdater {
         }
         e.appendChild(belowText);
 
-        e.addEventListener("mousedown", (e) =>
-            this.onmousedown(Interaction.fromMouseEvent(e)),
-        );
-        e.addEventListener("mouseup", (e) =>
-            this.onmouseup(Interaction.fromMouseEvent(e)),
-        );
-        e.addEventListener("mouseleave", (e) =>
-            this.onmouseleave(Interaction.fromMouseEvent(e)),
-        );
+        this.addHandler(e, "mousedown", this.onmousedown);
+        this.addHandler(e, "mouseup", this.onmouseup);
+        this.addHandler(e, "mouseleave", this.onmouseleave);
+    }
+
+    addTo(runner: GameRunner) {
+        runner.components.push(this);
+        runner.updaters.push(this);
+        runner.recorders.push(this);
+        this.init(runner.state);
     }
 
     update(state: State): void {

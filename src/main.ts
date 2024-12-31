@@ -1,33 +1,38 @@
 import { CButton, CompleteResult } from "./button";
-import { Component } from "./component";
-import { FrameUpdater } from "./frameupdater";
-import { State } from "./state";
+import { GameRunner } from "./runner";
 import { CText } from "./text";
 import { formatTime, pluralify } from "./utils";
 
-let state = new State();
+// discount jquery
+const $ = (e: string) => document.getElementById(e);
+
+const runner = new GameRunner();
+$("restartButton")?.addEventListener("click", () => {
+    runner.stop();
+    runner.start();
+});
 
 let timerText = new CText(
     "timerText",
     (s) => `Time elapsed: ${formatTime(s.frame)}`,
 );
-timerText.init(state);
+timerText.addTo(runner);
 
 let lemonText = new CText("lemonText", (s) =>
     pluralify(s.resources.lemons, "lemon"),
 );
-lemonText.init(state);
+lemonText.addTo(runner);
 
 let lemonadeText = new CText("lemonadeText", (s) =>
     pluralify(s.resources.lemonades, "lemonade"),
 );
-lemonadeText.init(state);
+lemonadeText.addTo(runner);
 
 let moneyText = new CText(
     "moneyText",
     (s) => "$" + s.resources.money + " owned",
 );
-moneyText.init(state);
+moneyText.addTo(runner);
 
 let lemonButton = new CButton({
     id: "lemonButton",
@@ -37,7 +42,7 @@ let lemonButton = new CButton({
         s.resources.lemons += c;
     },
 });
-lemonButton.init(state);
+lemonButton.addTo(runner);
 
 let standButton = new CButton({
     id: "standButton",
@@ -48,7 +53,7 @@ let standButton = new CButton({
         return CompleteResult.DISABLE;
     },
 });
-standButton.init(state);
+standButton.addTo(runner);
 
 // TODO: how many lemons are actually in an average lemonade?
 const LEMONS_PER_LEMONADE = 4;
@@ -69,7 +74,7 @@ let squeezeButton = new CButton({
         s.resources.lemonades += goodCompletions;
     },
 });
-squeezeButton.init(state);
+squeezeButton.addTo(runner);
 
 let sellButton = new CButton({
     id: "sellButton",
@@ -86,7 +91,7 @@ let sellButton = new CButton({
         state.resources.money += goodCompletions * state.moneyPerLemonade;
     },
 });
-sellButton.init(state);
+sellButton.addTo(runner);
 
 const COMPUTER_COST = 500;
 let computerButton = new CButton({
@@ -108,41 +113,12 @@ let computerButton = new CButton({
         return CompleteResult.DISABLE;
     },
 });
-computerButton.init(state);
+computerButton.addTo(runner);
 
-let components: Component[] = [
-    lemonButton,
-    lemonText,
-    lemonadeText,
-    timerText,
-    standButton,
-    squeezeButton,
-    sellButton,
-    moneyText,
-    computerButton,
-];
-let frameUpdaters: FrameUpdater[] = [
-    lemonButton,
-    standButton,
-    squeezeButton,
-    sellButton,
-    computerButton,
-];
-
-let startTime = Date.now();
+runner.start();
 
 function draw() {
-    let endFrame = Date.now() - startTime;
-    while (state.frame != endFrame) {
-        state.frame++;
-        for (let f of frameUpdaters) {
-            f.frame(state);
-        }
-    }
-    for (let c of components) {
-        c.update(state);
-    }
-    lemonButton.update(state);
+    runner.draw();
     requestAnimationFrame(draw);
 }
 

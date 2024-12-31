@@ -11,12 +11,13 @@ export class GameRunner {
     replays: Replay[];
     merged: Replay;
 
-    state: State = new State();
+    state: State;
     startTime: number | null = null;
 
     constructor(replays?: Replay[]) {
         this.replays = replays ?? [];
         this.merged = Replay.merge(this.replays);
+        this.state = new State();
     }
 
     start() {
@@ -25,7 +26,9 @@ export class GameRunner {
         }
         this.startTime = Date.now();
         this.state = new State();
-        console.log(this.state);
+        for (const c of this.components) {
+            c.init(this.state);
+        }
     }
 
     draw() {
@@ -52,7 +55,6 @@ export class GameRunner {
         }
         this.replays.push(replay);
         this.merged = Replay.merge([this.merged, replay]);
-        console.log(this.merged);
         this.startTime = null;
     }
 }

@@ -28,11 +28,7 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
     text: string;
     belowText?: string;
     maxProgress: number;
-    progress: number = 0;
-    clickers: number = 0;
     realMousePressed: boolean = false;
-    enabled: boolean = true;
-    shown: boolean = true;
     onComplete?: CompleteFn;
     shouldEnable?: (state: State) => boolean;
     shouldShow: (state: State) => boolean;
@@ -52,20 +48,20 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
 
     frame(state: State) {
         super.frame(state);
-        this.setEnabled(this.shouldEnable?.(state) ?? true);
-        if (!this.enabled) return;
-        this.progress += this.clickers;
-        if (this.progress >= this.maxProgress) {
-            let completions = Math.floor(this.progress / this.maxProgress);
+        this.setEnabled(state, this.shouldEnable?.(state) ?? true);
+        if (!state.button[this.id].enabled) return;
+        state.button[this.id].progress += state.button[this.id].clickers;
+        if (state.button[this.id].progress >= this.maxProgress) {
+            let completions = Math.floor(state.button[this.id].progress / this.maxProgress);
             let res =
                 this.onComplete?.(state, completions) ?? CompleteResult.NORMAL;
             switch (res) {
                 case CompleteResult.NORMAL:
-                    this.progress -= this.maxProgress * completions;
+                    state.button[this.id].progress -= this.maxProgress * completions;
                     break;
                 case CompleteResult.DISABLE:
-                    this.disable();
-                    this.progress = this.maxProgress;
+                    this.disable(state);
+                    state.button[this.id].progress = this.maxProgress;
                     break;
             }
         }
@@ -79,12 +75,23 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
         return e;
     }
 
-    private getProgressText(): string {
-        return `${formatTime(this.progress)} / ${formatTime(this.maxProgress)}`;
+    private getProgressText(state: State): string {
+        return `${formatTime(state.button[this.id].progress)} / ${formatTime(this.maxProgress)}`;
     }
 
     init(state: State): void {
+        state.button[this.id] = {
+            progress: 0,
+            clickers: 0,
+            enabled: true,
+        };
+
         let e = this.getElem();
+        if (e.hasChildNodes()) {
+            this.update(state);
+            return;
+        }
+
         e.classList.add("cbutton");
         e.classList.toggle("cbutton-hidden", !this.shouldShow(state));
 
@@ -94,11 +101,11 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
 
         let p = document.createElement("progress");
         p.max = this.maxProgress;
-        p.value = this.progress;
+        p.value = state.button[this.id].progress;
         e.appendChild(p);
 
         let bottomText = document.createElement("div");
-        bottomText.innerText = this.getProgressText();
+        bottomText.innerText = this.getProgressText(state);
         e.appendChild(bottomText);
 
         let belowText = document.createElement("div");
@@ -116,62 +123,61 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
         runner.components.push(this);
         runner.updaters.push(this);
         runner.recorders.push(this);
-        this.init(runner.state);
     }
 
     update(state: State): void {
         let e = this.getElem();
-        e.classList.toggle("cbutton-disabled", !this.enabled);
+        e.classList.toggle("cbutton-disabled", !state.button[this.id].enabled);
         e.classList.toggle("cbutton-pressed", this.realMousePressed);
         e.classList.toggle("cbutton-hidden", !this.shouldShow(state));
 
         let p = e.children[1] as HTMLProgressElement;
-        p.value = this.progress;
+        p.value = state.button[this.id].progress;
 
         let bottomText = e.children[2] as HTMLDivElement;
-        bottomText.innerText = this.getProgressText();
+        bottomText.innerText = this.getProgressText(state);
 
         let belowText = e.children[3] as HTMLDivElement;
         belowText.innerText =
             this.getBelowText?.(state) ?? this.belowText ?? "";
     }
 
-    onmousedown(inter: Interaction) {
-        this.clickers++;
+    onmousedown(state: State, inter: Interaction) {
+        state.button[this.id].clickers++;
         if (inter.real) {
             this.realMousePressed = true;
         }
     }
 
-    onmouseup(inter: Interaction) {
+    onmouseup(state: State, inter: Interaction) {
         if (inter.real && !this.realMousePressed) return;
-        this.clickers--;
+        state.button[this.id].clickers--;
         if (inter.real) {
             this.realMousePressed = false;
         }
     }
 
-    onmouseleave(inter: Interaction) {
+    onmouseleave(state: State, inter: Interaction) {
         if (inter.real && this.realMousePressed) {
-            this.clickers--;
+            state.button[this.id].clickers--;
             this.realMousePressed = false;
         }
     }
 
-    disable() {
-        this.enabled = false;
-        this.progress = 0;
+    disable(state: State) {
+        state.button[this.id].enabled = false;
+        state.button[this.id].progress = 0;
     }
 
-    enable() {
-        this.enabled = true;
+    enable(state: State) {
+        state.button[this.id].enabled = true;
     }
 
-    setEnabled(e: boolean) {
-        if (this.enabled && !e) {
-            this.disable();
-        } else if (!this.enabled && e) {
-            this.enable();
+    setEnabled(state: State, e: boolean) {
+        if (state.button[this.id].enabled && !e) {
+            this.disable(state);
+        } else if (!state.button[this.id].enabled && e) {
+            this.enable(state);
         }
     }
 }

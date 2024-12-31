@@ -1,3 +1,9 @@
+export interface ButtonState {
+    progress: number;
+    clickers: number;
+    enabled: boolean;
+}
+
 export class State {
     frame: number = 0;
 
@@ -11,4 +17,6 @@ export class State {
         lemons: 0,
         lemonades: 0,
     };
+
+    button: { [id: string]: ButtonState } = {};
 }

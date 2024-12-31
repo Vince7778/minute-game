@@ -22,13 +22,17 @@ export class CText implements Component {
 
     init(state: State): void {
         let e = this.getElem();
+        if (e.hasChildNodes()) {
+            this.update(state);
+            return;
+        }
+
         e.innerText = this.fn(state);
         e.classList.add("ctext");
     }
 
     addTo(runner: GameRunner) {
         runner.components.push(this);
-        this.init(runner.state);
     }
 
     update(state: State): void {

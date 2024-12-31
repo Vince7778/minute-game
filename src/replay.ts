@@ -1,7 +1,7 @@
 import { Interaction, SavedInteraction, UserInteraction } from "./interaction";
 import { State } from "./state";
 
-type EventHandler = (event: Interaction) => void;
+type EventHandler = (state: State, event: Interaction) => void;
 export class ReplayRecorder {
     id: string;
     handlers: { [type: string]: EventHandler } = {};
@@ -23,12 +23,12 @@ export class ReplayRecorder {
         elem.addEventListener(type, (e) => {
             const inter = UserInteraction.fromEvent(e);
             this.userInters.push(inter);
-            fn(inter); // we can run user events in between frames, maybe remove?
         });
     }
 
     frame(state: State) {
         for (const userInter of this.userInters) {
+            this.handlers[userInter.type]?.(state, userInter);
             this.newInters.push(userInter.convert(state.frame));
         }
         this.userInters = [];
@@ -43,7 +43,7 @@ export class ReplayRecorder {
                     `Replay failed: handler for event type ${inter.type} does not exist on ${this.id}`,
                 );
             }
-            handler(inter);
+            handler(state, inter);
             this.interIndex++;
         }
     }

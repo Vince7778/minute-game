@@ -44,3 +44,13 @@ body {
     border-spacing: 5px;
     border-collapse: separate;
 }
+
+#cursorCanvas {
+    opacity: 50%;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+}

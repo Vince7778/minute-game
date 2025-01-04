@@ -1,4 +1,5 @@
 import { Component } from "./component";
+import { CursorCanvas } from "./cursor";
 import { FrameUpdater } from "./frameupdater";
 import { Replay, ReplayRecorder } from "./replay";
 import { State } from "./state";
@@ -14,21 +15,29 @@ export class GameRunner {
     state: State;
     startTime: number | null = null;
 
+    cursorCanvas: CursorCanvas;
+
     constructor(replays?: Replay[]) {
         this.replays = replays ?? [];
         this.merged = Replay.merge(this.replays);
         this.state = new State();
+
+        this.cursorCanvas = new CursorCanvas();
+        this.components.push(this.cursorCanvas);
+        this.recorders.push(this.cursorCanvas);
+        this.updaters.push(this.cursorCanvas);
     }
 
-    start() {
+    async start() {
+        await this.cursorCanvas.loadImage();
         for (const r of this.recorders) {
             r.load(this.merged);
         }
-        this.startTime = Date.now();
         this.state = new State();
         for (const c of this.components) {
             c.init(this.state);
         }
+        this.startTime = Date.now();
     }
 
     draw() {

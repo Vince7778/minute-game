@@ -1,8 +1,9 @@
+import { FrameUpdater } from "./frameupdater";
 import { Interaction, SavedInteraction, UserInteraction } from "./interaction";
 import { State } from "./state";
 
 type EventHandler = (state: State, event: Interaction) => void;
-export class ReplayRecorder {
+export class ReplayRecorder implements FrameUpdater {
     id: string;
     handlers: { [type: string]: EventHandler } = {};
     inters: SavedInteraction[] = []; // should be in sorted order by frame
@@ -17,7 +18,11 @@ export class ReplayRecorder {
         this.id = id;
     }
 
-    protected addHandler(elem: HTMLElement, type: string, fn: EventHandler) {
+    protected addHandler(
+        elem: HTMLElement | Document,
+        type: string,
+        fn: EventHandler,
+    ) {
         fn = fn.bind(this);
         this.handlers[type] = fn;
         elem.addEventListener(type, (e) => {
@@ -49,9 +54,11 @@ export class ReplayRecorder {
     }
 
     save(replay: Replay) {
-        const allInters = [...this.inters, ...this.newInters];
-        allInters.sort((a, b) => a.frame - b.frame);
-        replay.inters[this.id] = allInters;
+        this.newInters.sort((a, b) => a.frame - b.frame);
+        for (const inter of this.newInters) {
+            inter.details.replayId = replay.id;
+        }
+        replay.inters[this.id] = this.newInters;
     }
 
     load(replay: Replay) {

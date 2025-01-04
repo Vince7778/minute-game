@@ -44,27 +44,8 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
         this.belowText = settings.belowText;
         this.getBelowText = settings.getBelowText;
         this.shouldShow = settings.shouldShow ?? (() => true);
-    }
 
-    frame(state: State) {
-        super.frame(state);
-        this.setEnabled(state, this.shouldEnable?.(state) ?? true);
-        if (!state.button[this.id].enabled) return;
-        state.button[this.id].progress += state.button[this.id].clickers;
-        if (state.button[this.id].progress >= this.maxProgress) {
-            let completions = Math.floor(state.button[this.id].progress / this.maxProgress);
-            let res =
-                this.onComplete?.(state, completions) ?? CompleteResult.NORMAL;
-            switch (res) {
-                case CompleteResult.NORMAL:
-                    state.button[this.id].progress -= this.maxProgress * completions;
-                    break;
-                case CompleteResult.DISABLE:
-                    this.disable(state);
-                    state.button[this.id].progress = this.maxProgress;
-                    break;
-            }
-        }
+        this.setupElements();
     }
 
     private getElem(): HTMLElement {
@@ -73,6 +54,56 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
             throw new Error(`No element with id ${this.id} exists`);
         }
         return e;
+    }
+
+    setupElements() {
+        const e = this.getElem();
+        e.classList.add("cbutton");
+
+        let topText = document.createElement("div");
+        topText.innerText = this.text;
+        e.appendChild(topText);
+
+        let p = document.createElement("progress");
+        p.max = this.maxProgress;
+        e.appendChild(p);
+
+        let bottomText = document.createElement("div");
+        e.appendChild(bottomText);
+
+        let belowText = document.createElement("div");
+        if (this.belowText) {
+            belowText.innerText = this.belowText;
+        }
+        e.appendChild(belowText);
+
+        this.addHandler(e, "mousedown", this.onmousedown);
+        this.addHandler(e, "mouseup", this.onmouseup);
+        this.addHandler(e, "mouseleave", this.onmouseleave);
+    }
+
+    frame(state: State) {
+        super.frame(state);
+        this.setEnabled(state, this.shouldEnable?.(state) ?? true);
+        if (!state.button[this.id].enabled) return;
+        state.button[this.id].progress += state.button[this.id].clickers;
+        if (state.button[this.id].progress >= this.maxProgress) {
+            let completions = Math.floor(
+                state.button[this.id].progress / this.maxProgress,
+            );
+            let res =
+                this.onComplete?.(state, completions) ?? CompleteResult.NORMAL;
+            switch (res) {
+                case CompleteResult.NORMAL:
+                    state.button[this.id].progress -=
+                        this.maxProgress * completions;
+                    break;
+                case CompleteResult.DISABLE:
+                    this.disable(state);
+                    state.button[this.id].progress = this.maxProgress;
+                    break;
+            }
+        }
     }
 
     private getProgressText(state: State): string {
@@ -85,38 +116,6 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
             clickers: 0,
             enabled: true,
         };
-
-        let e = this.getElem();
-        if (e.hasChildNodes()) {
-            this.update(state);
-            return;
-        }
-
-        e.classList.add("cbutton");
-        e.classList.toggle("cbutton-hidden", !this.shouldShow(state));
-
-        let topText = document.createElement("div");
-        topText.innerText = this.text;
-        e.appendChild(topText);
-
-        let p = document.createElement("progress");
-        p.max = this.maxProgress;
-        p.value = state.button[this.id].progress;
-        e.appendChild(p);
-
-        let bottomText = document.createElement("div");
-        bottomText.innerText = this.getProgressText(state);
-        e.appendChild(bottomText);
-
-        let belowText = document.createElement("div");
-        if (this.belowText) {
-            belowText.innerText = this.belowText;
-        }
-        e.appendChild(belowText);
-
-        this.addHandler(e, "mousedown", this.onmousedown);
-        this.addHandler(e, "mouseup", this.onmouseup);
-        this.addHandler(e, "mouseleave", this.onmouseleave);
     }
 
     addTo(runner: GameRunner) {

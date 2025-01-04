@@ -115,7 +115,7 @@ let computerButton = new CButton({
 });
 computerButton.addTo(runner);
 
-runner.start();
+await runner.start();
 
 function draw() {
     runner.draw();

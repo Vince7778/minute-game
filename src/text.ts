@@ -4,10 +4,10 @@ import { State } from "./state";
 
 // order matters!
 const SUBS = [
-    { "r": /\blemons?\b/, "color": "lightgoldenrodyellow" },
-    { "r": /\b(lemonade )?stand\b/, "color": "goldenrod" },
-    { "r": /\blemonades?\b/, "color": "lemonchiffon" },
-    { "r": /\$\d+\b/, "color": "lightgreen" },
+    { r: /\blemons?\b/, color: "lightgoldenrodyellow" },
+    { r: /\b(lemonade )?stand\b/, color: "goldenrod" },
+    { r: /\blemonades?\b/, color: "lemonchiffon" },
+    { r: /\$\d+\b/, color: "lightgreen" },
 ];
 
 class TextFragment {
@@ -45,7 +45,7 @@ function substitute(t: string): TextFragment[] {
 export function fancyText(t: string, el?: HTMLElement): HTMLElement {
     const sub = substitute(t);
     if (!el) el = document.createElement("div");
-    el.replaceChildren(...sub.map(s => s.toSpan()));
+    el.replaceChildren(...sub.map((s) => s.toSpan()));
     return el;
 }
 

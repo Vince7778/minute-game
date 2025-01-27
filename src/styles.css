@@ -8,6 +8,7 @@ body {
     padding: 0;
     background-color: #111;
     color: #ddd;
+    overflow: hidden;
 }
 
 .cbutton {
@@ -23,8 +24,18 @@ body {
 }
 
 .cbutton-disabled {
-    color: #555;
-    cursor: not-allowed;
+    position: relative;
+    cursor: default;
+}
+
+.cbutton-disabled:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(40, 0, 0, 0.8);
 }
 
 .cbutton:hover:not(.cbutton-disabled) {
@@ -54,6 +65,7 @@ body {
     left: 0;
     top: 0;
     pointer-events: none;
+    z-index: 10;
 }
 
 #header {

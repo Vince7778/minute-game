@@ -4,6 +4,7 @@ import { Interaction } from "./interaction";
 import { ReplayRecorder } from "./replay";
 import { GameRunner } from "./runner";
 import { State } from "./state";
+import { fancyText } from "./text";
 import { formatTime } from "./utils";
 
 export enum CompleteResult {
@@ -65,7 +66,7 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
         e.classList.add("cbutton");
 
         let topText = document.createElement("div");
-        topText.innerText = this.text;
+        fancyText(this.text, topText);
         e.appendChild(topText);
 
         let p = document.createElement("progress");
@@ -77,7 +78,7 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
 
         let belowText = document.createElement("div");
         if (this.belowText) {
-            belowText.innerText = this.belowText;
+            fancyText(this.belowText, belowText);
         }
         e.appendChild(belowText);
 
@@ -138,9 +139,9 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
         let bottomText = e.children[2] as HTMLDivElement;
         bottomText.innerText = this.getProgressText();
 
-        let belowText = e.children[3] as HTMLDivElement;
-        belowText.innerText =
-            this.getBelowText?.(state) ?? this.belowText ?? "";
+        let belowElem = e.children[3] as HTMLDivElement;
+        const belowText = this.getBelowText?.(state) ?? this.belowText ?? "";
+        fancyText(belowText, belowElem);    
     }
 
     onmousedown(_: State, inter: Interaction) {

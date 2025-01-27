@@ -93,15 +93,12 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
         if (!this.enabled) return;
         this.progress += this.clickers;
         if (this.progress >= this.maxProgress) {
-            let completions = Math.floor(
-                this.progress / this.maxProgress,
-            );
+            let completions = Math.floor(this.progress / this.maxProgress);
             let res =
                 this.onComplete?.(state, completions) ?? CompleteResult.NORMAL;
             switch (res) {
                 case CompleteResult.NORMAL:
-                    this.progress -=
-                        this.maxProgress * completions;
+                    this.progress -= this.maxProgress * completions;
                     break;
                 case CompleteResult.DISABLE:
                     this.disable();
@@ -141,7 +138,7 @@ export class CButton extends ReplayRecorder implements Component, FrameUpdater {
 
         let belowElem = e.children[3] as HTMLDivElement;
         const belowText = this.getBelowText?.(state) ?? this.belowText ?? "";
-        fancyText(belowText, belowElem);    
+        fancyText(belowText, belowElem);
     }
 
     onmousedown(_: State, inter: Interaction) {

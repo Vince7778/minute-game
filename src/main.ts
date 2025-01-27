@@ -18,11 +18,13 @@ let timerText = new CText(
 );
 timerText.addTo(runner);
 
-let lemonText = new CText("lemonText", (s) => pluralify(s.resources.lemons, "lemon"));
+let lemonText = new CText("lemonText", (s) =>
+    pluralify(s.resources.lemons, "lemon"),
+);
 lemonText.addTo(runner);
 
 let lemonadeText = new CText("lemonadeText", (s) =>
-    pluralify(s.resources.lemonades, "lemonade")
+    pluralify(s.resources.lemonades, "lemonade"),
 );
 lemonadeText.addTo(runner);
 

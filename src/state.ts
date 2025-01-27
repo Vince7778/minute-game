@@ -1,5 +1,6 @@
 export class State {
-    frame: number = 0;
+    frame = 0;
+    endFrame = 60_000; // 60 seconds
 
     isStandSetUp = false;
     moneyPerLemonade = 5;

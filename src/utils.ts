@@ -12,7 +12,8 @@ function padWithZero(n: number, len: number): string {
     return out;
 }
 
-export function formatTime(ms: number) {
+export function formatTime(ms: number): string {
+    if (ms < 0) return "-" + formatTime(-ms);
     let secs = Math.floor(ms / 1000);
     ms = ms % 1000;
     let mins = Math.floor(secs / 60);

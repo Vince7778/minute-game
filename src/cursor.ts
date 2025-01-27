@@ -70,11 +70,9 @@ export class CursorCanvas extends ReplayRecorder implements Component {
 
     onmousemove(_: State, inter: Interaction) {
         if (!inter.real) {
-            const x = inter.details.x;
-            const y = inter.details.y;
-            const id = inter.details.replayId;
-            if (!x || !y || !id) return;
-            this.lastPositions[id] = { x, y };
+            const { x, y, replayId } = inter.details;
+            if (!x || !y || !replayId) return;
+            this.lastPositions[replayId] = { x, y };
         }
     }
 }

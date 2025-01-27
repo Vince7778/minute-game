@@ -6,10 +6,12 @@ type TextFn = (state: State) => string;
 export class CText implements Component {
     id: string;
     fn: TextFn;
+    color?: string;
 
-    constructor(id: string, fn: TextFn) {
+    constructor(id: string, fn: TextFn, color?: string) {
         this.id = id;
         this.fn = fn;
+        this.color = color;
     }
 
     getElem(): HTMLElement {
@@ -29,6 +31,7 @@ export class CText implements Component {
 
         e.innerText = this.fn(state);
         e.classList.add("ctext");
+        if (this.color) e.style.color = this.color;
     }
 
     addTo(runner: GameRunner) {

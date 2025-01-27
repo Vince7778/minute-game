@@ -1,5 +1,6 @@
 * {
     font-family: Arial, Helvetica, sans-serif;
+    font-variant-numeric: tabular-nums;
 }
 
 body {
@@ -27,11 +28,11 @@ body {
 }
 
 .cbutton:hover:not(.cbutton-disabled) {
-    background-color: #181818;
+    background-color: #222;
 }
 
 .cbutton-pressed:not(.cbutton-disabled) {
-    background-color: #222 !important;
+    background-color: #333 !important;
 }
 
 .ctext {
@@ -53,4 +54,59 @@ body {
     left: 0;
     top: 0;
     pointer-events: none;
+}
+
+#header {
+    display: grid;
+    grid-template-columns: 3fr 1fr 3fr;
+}
+
+.headerSide {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    height: 80%;
+    padding: 0 1em 0 1em;
+    margin: 0 -1em 0 -1em;
+    border-bottom: 1px solid #ddd;
+}
+
+.headerSide > *:not(:first-child) {
+    border-left: 1px solid #ddd;
+}
+
+.headerButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    cursor: pointer;
+}
+
+.headerButton:hover {
+    background-color: #222;
+}
+
+#timerContainer {
+    position: relative;
+    z-index: 2;
+}
+
+#timerBackground {
+    position: absolute;
+    top: 3px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+
+    background-color: #222;
+    border: 1px solid #ddd;
+    border-top: none;
+    transform: perspective(10px) rotateX(-2deg);
+}
+
+#timer {
+    font-size: 3em;
+    text-align: center;
 }

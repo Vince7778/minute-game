@@ -13,24 +13,23 @@ $("restartButton")?.addEventListener("click", () => {
 });
 
 let timerText = new CText(
-    "timerText",
-    (s) => `Time elapsed: ${formatTime(s.frame)}`,
+    "timer",
+    (s) => `${formatTime(s.endFrame - s.frame)}`,
 );
 timerText.addTo(runner);
 
-let lemonText = new CText("lemonText", (s) =>
-    pluralify(s.resources.lemons, "lemon"),
-);
+let lemonText = new CText("lemonText", (s) => pluralify(s.resources.lemons, "lemon"), "yellow");
 lemonText.addTo(runner);
 
 let lemonadeText = new CText("lemonadeText", (s) =>
-    pluralify(s.resources.lemonades, "lemonade"),
+    pluralify(s.resources.lemonades, "lemonade"), "lightyellow"
 );
 lemonadeText.addTo(runner);
 
 let moneyText = new CText(
     "moneyText",
     (s) => "$" + s.resources.money + " owned",
+    "lightgreen",
 );
 moneyText.addTo(runner);
 
